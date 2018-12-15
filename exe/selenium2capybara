@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'pathname'
+
+require 'selenium_to_capybara'
+
+file_path = ARGV[0]
+
+raise "must be a .side file" unless file_path.end_with?('.side')
+
+side_file = if file_path.start_with?('~')
+  Pathname.new(Dir.home).join(file_path.sub('^~/', ''))
+elsif file_path.start_with?('/')
+  Pathname.new(file_path)
+else
+  Pathname.getwd.join(file_path)
+end
+
+json = JSON.parse(side_file.read)
+
+json['tests'].each do |test_instance|
+  puts SeleniumToCapybara.to_minitest(test_instance['name'], test_instance['commands'])
+end
